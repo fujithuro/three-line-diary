@@ -1,0 +1,7 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#f8f6ef"><title>三行日記</title><link rel="stylesheet" href="/style.css"><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg"></head>
+<body>
+<section id="login" class="login"><h1>三行日記</h1><p>日々のことを、少しだけ。</p><form id="login-form"><label for="token">アクセストークン</label><input id="token" type="password" autocomplete="current-password" required><button>開く</button></form><p id="login-error" role="status"></p></section>
+<div id="notebook" hidden><header><h1>三行日記</h1><button id="today">今日へ</button></header><main><button id="older">過去をさらに読み込む</button><p id="notice" role="status"></p><div id="days"></div><footer>今日のことを、あなたの言葉で。</footer></main></div>
+<dialog id="history"><h2>日記の履歴</h2><div id="versions"></div><p id="history-error" role="status"></p><button id="more-history">さらに読み込む</button><button id="close-history">閉じる</button></dialog>
+<script type="module" src="/app.js"></script></body></html>
