@@ -3,7 +3,7 @@ const todayKey = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo'
 const shift = (date, days) => { const d = new Date(date + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); };
 let token = localStorage.getItem('diary-token') || '', earliest, loading = false, historyDay, cursor;
 const entries = new Map(), drafts = new Map();
-function login(message = '') { $('#login').hidden = false; $('#notebook').hidden = true; $('#login-error').textContent = message; }
+function login(message = '') { if ($('#history').open) $('#history').close(); $('#login').hidden = false; $('#notebook').hidden = true; $('#login-error').textContent = message; }
 async function api(path, options = {}) {
   let response;
   try { response = await fetch('/api/' + path, { ...options, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, cache: 'no-store' }); }
@@ -37,9 +37,9 @@ function renderDay(date) {
       try { const rows=await api(`entries?start=${date}&end=${date}`); entries.set(date,rows[0] || {date,body:'',version:0}); drafts.set(date,{...entry(date)}); renderDay(date); } catch(e) { error.textContent=e.message; }
     }); reload.hidden=true;
     const save = button('保存', async () => {
-      save.disabled=true;
+      input.readOnly=true; actions.querySelectorAll('button').forEach(b=>b.disabled=true);
       try { entries.set(date, await api('entries/'+date, {method:'PUT',body:JSON.stringify({body:draft.body,version:draft.version})})); drafts.delete(date); renderDay(date); }
-      catch(e) { error.textContent=e.message; reload.hidden=!e.conflict; } finally { save.disabled=false; }
+      catch(e) { error.textContent=e.message; reload.hidden=!e.conflict; } finally { input.readOnly=false; actions.querySelectorAll('button').forEach(b=>b.disabled=false); }
     });
     actions.append(button('履歴',()=>openHistory(date)),button('キャンセル',()=>{ if (draft.body !== entry(date).body && !confirm('入力中の変更を破棄しますか？')) return; drafts.delete(date); renderDay(date); }),save);
     section.append(input,error,reload); requestAnimationFrame(resize);
