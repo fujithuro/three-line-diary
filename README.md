@@ -53,3 +53,11 @@ npx wrangler d1 export diary --remote --output diary-backup.sql
 ## コミット方針
 
 同じ意図の変更を1つのコミットにまとめ、日本語の件名と本文で変更理由・背景・重要な判断を残します。API、画面、不具合修正など目的で分け、同じ目的のファイル変更は分割しません。
+
+統合テストは本番ではなく、検証用ローカルDBで実行します。2001-01-01にテスト履歴を追加します。
+
+```sh
+npm run dev -- --var DIARY_TOKEN:local-verification-token
+# 別のターミナルで
+DIARY_TEST_URL=http://localhost:8787 npm test
+```
