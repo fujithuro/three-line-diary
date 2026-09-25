@@ -13,5 +13,10 @@
   <button id="editor-reload" hidden>最新の内容を読み込む</button>
   <div class="editor-actions"><button id="editor-history">履歴</button><span></span><button id="editor-cancel">キャンセル</button><button id="editor-save">保存</button></div>
 </dialog>
+<dialog id="discard" aria-labelledby="discard-title" aria-describedby="discard-description">
+  <h2 id="discard-title">変更を破棄しますか？</h2>
+  <p id="discard-description">保存していない内容は失われます。</p>
+  <div class="actions"><button id="discard-back" autofocus>編集を続ける</button><button id="discard-confirm">破棄して閉じる</button></div>
+</dialog>
 <dialog id="history" aria-label="日記の履歴"><h2>日記の履歴</h2><div id="versions"></div><p id="history-error" role="status"></p><button id="more-history">さらに読み込む</button><button id="close-history">閉じる</button></dialog>
 <script type="module" src="/app.js"></script></body></html>

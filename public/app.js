@@ -3,7 +3,7 @@ const todayKey = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo'
 const shift = (date, days) => { const d = new Date(date + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); };
 let token = localStorage.getItem('diary-token') || '', earliest, loading = false, historyDay, cursor;
 const entries = new Map(), drafts = new Map();
-function login(message = '') { if ($('#editor').open) $('#editor').close(); if ($('#history').open) $('#history').close(); $('#login').hidden = false; $('#notebook').hidden = true; $('#login-error').textContent = message; }
+function login(message = '') { if ($('#discard').open) $('#discard').close(); if ($('#editor').open) $('#editor').close(); if ($('#history').open) $('#history').close(); $('#login').hidden = false; $('#notebook').hidden = true; $('#login-error').textContent = message; }
 async function api(path, options = {}) {
   let response;
   try { response = await fetch('/api/' + path, { ...options, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, cache: 'no-store' }); }
@@ -56,6 +56,7 @@ function openEditor(date) {
 }
 function closeEditor() {
   const date = editingDate;
+  if ($('#discard').open) $('#discard').close();
   drafts.delete(date);
   editingDate = null;
   $('#editor').close();
@@ -63,14 +64,18 @@ function closeEditor() {
 }
 function cancelEditor() {
   if (editorBusy) return;
-  if (drafts.get(editingDate).body !== entry(editingDate).body &&
-      !confirm('入力中の変更を破棄しますか？')) return;
+  if (drafts.get(editingDate).body !== entry(editingDate).body) {
+    $('#discard').showModal();
+    return;
+  }
   closeEditor();
 }
 $('#editor-body').oninput = () => {
   drafts.get(editingDate).body = $('#editor-body').value;
   resizeEditor();
 };
+$('#discard-back').onclick = () => $('#discard').close();
+$('#discard-confirm').onclick = closeEditor;
 $('#editor-cancel').onclick = cancelEditor;
 $('#editor').addEventListener('cancel', event => {
   event.preventDefault();
