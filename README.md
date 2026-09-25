@@ -62,3 +62,10 @@ npm run dev -- --var DIARY_TOKEN:local-verification-token
 # 別のターミナルで
 DIARY_TEST_URL=http://localhost:8787 npm test
 ```
+
+## 祝日表示
+
+土曜の曜日を青、日曜と祝日・休日の曜日を赤で表示します。祝日・休日は `(水・祝)` の形式です。
+内閣府の公式CSV（https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html）を同梱し、閲覧時に外部サービスへ接続しません。
+現在の収録範囲は1955〜2027年です。範囲外の祝日は推測せず、通常の曜日表示になります。
+翌年分の公表や祝日の変更時は `npm run holidays:update` を実行してデータを更新し、再デプロイしてください。

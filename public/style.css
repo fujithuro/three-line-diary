@@ -16,3 +16,6 @@ body:has(dialog[open]) { overflow: hidden; }
 #editor-save { background: var(--accent); color: white; border-radius: 5px; padding-inline: 24px; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 @media(max-width:400px) { #editor { padding: 20px; } .editor-actions { bottom: -20px; font-size: 14px; } }
+
+.weekday-saturday { color: #3e6e9c; }
+.weekday-holiday { color: #ad4944; }

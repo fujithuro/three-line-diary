@@ -1,3 +1,4 @@
+import { dateLabel } from './calendar.js';
 const $ = selector => document.querySelector(selector);
 const todayKey = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo', year:'numeric',month:'2-digit',day:'2-digit' }).format(new Date());
 const shift = (date, days) => { const d = new Date(date + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); };
@@ -20,7 +21,13 @@ function renderDay(date) {
   section.className = 'day'; section.id = 'day-' + date;
   const head = document.createElement('div'); head.className = 'day-head';
   const title = document.createElement('div'); title.className = 'date';
-  title.textContent = new Intl.DateTimeFormat('ja-JP', { timeZone:'Asia/Tokyo', year:'numeric',month:'long',day:'numeric',weekday:'short' }).format(new Date(date + 'T00:00:00+09:00'));
+  const label = dateLabel(date);
+  title.textContent = label.date;
+  const weekday = document.createElement('span');
+  weekday.textContent = label.weekday;
+  weekday.className = label.className;
+  if (label.holiday) weekday.title = label.holiday;
+  title.append(weekday);
   if (date === todayKey()) { const badge = document.createElement('span'); badge.className='badge'; badge.textContent='今日'; title.append(badge); }
   const actions = document.createElement('div'); actions.className='actions'; head.append(title, actions); section.append(head);
   actions.append(button('編集', () => openEditor(date)));
