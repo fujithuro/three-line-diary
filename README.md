@@ -69,3 +69,66 @@ DIARY_TEST_URL=http://localhost:8787 npm test
 内閣府の公式CSV（https://www8.cao.go.jp/chosei/shukujitsu/gaiyou.html）を同梱し、閲覧時に外部サービスへ接続しません。
 現在の収録範囲は1955〜2027年です。範囲外の祝日は推測せず、通常の曜日表示になります。
 翌年分の公表や祝日の変更時は `npm run holidays:update` を実行してデータを更新し、再デプロイしてください。
+
+## 開発用：GitHubへの認証
+
+GitHubへのHTTPSでのプッシュには、Fine-grained personal access token（PAT）を使います。これは日記アプリへのログインに使う `DIARY_TOKEN` とは別の認証情報です。
+
+### PATの作成
+
+[GitHubのFine-grained token作成画面](https://github.com/settings/personal-access-tokens/new)で、次のように設定します。
+
+- Resource owner：自分の個人アカウント（このリポジトリでは `fujithuro`）
+- Repository access：`Only select repositories` → `three-line-diary` のみ
+- Repository permissions：`Contents: Read and write`（`Metadata: Read-only` は自動付与）
+- Expiration：運用に合わせた有効期限を設定
+
+このPATには会社のOrganizationの非公開リポジトリへの権限を与えません。GitHubの公開リポジトリの読み取りは可能です。
+
+### このPCでの保存設定（初回のみ）
+
+Git標準の `credential-store` を使い、PATをプロジェクト外の `~/.config/three-line-diary/git-credentials` に平文で保存します。個人用PCでの扱いやすさを優先した方式です。自作の認証スクリプト、キーチェーン、常時設定する環境変数は使いません。
+
+プロジェクトのディレクトリで実行します。
+
+```sh
+mkdir -p ~/.config/three-line-diary
+chmod 700 ~/.config/three-line-diary
+
+git config --local --replace-all credential.helper ''
+git config --local --add credential.helper \
+  "store --file=$HOME/.config/three-line-diary/git-credentials"
+git config --local credential.useHttpPath true
+```
+
+この設定は `.git/config` に保存され、このリポジトリだけに適用されます。空のhelper設定で引き継いだ認証ヘルパーをリセットし、接続先のリポジトリパスも含めて認証情報を区別します。設定ファイルとPAT保存ファイルはコミット対象ではありません。PATの値や保存ファイルの中身をREADME・コード・コミットへ含めないでください。
+
+### PATの登録・更新
+
+Mac標準のzshで、まず次の1行だけを実行します。
+
+```sh
+read -rs "diary_pat?GitHub PAT: "
+```
+
+入力待ちになったらPATを貼り付け、Enterを押します。入力文字は表示されません。その後、以下をまとめて実行します。
+
+```sh
+echo
+printf 'protocol=https\nhost=github.com\npath=fujithuro/three-line-diary.git\nusername=fujithuro\npassword=%s\n\n' "$diary_pat" |
+  git credential approve
+unset diary_pat
+```
+
+正常時は何も表示されません。GitがPATを保存し、ファイルの権限を自分だけが読み書きできる状態にします。`approve` は保存のみを行い、PATの有効性は検証しません。保存ファイルの存在は、内容を表示せずに確認できます。
+
+```sh
+test -s ~/.config/three-line-diary/git-credentials \
+  && echo '認証情報のファイルが保存されています'
+```
+
+以後は通常の `git push` で保存済みPATが使われます。ターミナルやPCを再起動しても再入力は不要です。期限切れ・失効時は新しいPATを作り、この「PATの登録・更新」を繰り返してください。保存してもPATの有効期限は延びません。
+
+GitHubへのプッシュとCloudflareへの公開は別操作です。`git push` はコードと履歴をGitHubへ送信し、`npm run deploy` は手元のコードをCloudflareへ公開します。
+
+参考：[Git credential-store](https://git-scm.com/docs/git-credential-store)、[Git credential](https://git-scm.com/docs/git-credential)
