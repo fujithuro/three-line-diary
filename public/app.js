@@ -3,7 +3,7 @@ const todayKey = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo'
 const shift = (date, days) => { const d = new Date(date + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); };
 let token = localStorage.getItem('diary-token') || '', earliest, loading = false, historyDay, cursor;
 const entries = new Map(), drafts = new Map();
-function login(message = '') { if ($('#history').open) $('#history').close(); $('#login').hidden = false; $('#notebook').hidden = true; $('#login-error').textContent = message; }
+function login(message = '') { if ($('#editor').open) $('#editor').close(); if ($('#history').open) $('#history').close(); $('#login').hidden = false; $('#notebook').hidden = true; $('#login-error').textContent = message; }
 async function api(path, options = {}) {
   let response;
   try { response = await fetch('/api/' + path, { ...options, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, cache: 'no-store' }); }
@@ -23,29 +23,91 @@ function renderDay(date) {
   title.textContent = new Intl.DateTimeFormat('ja-JP', { timeZone:'Asia/Tokyo', year:'numeric',month:'long',day:'numeric',weekday:'short' }).format(new Date(date + 'T00:00:00+09:00'));
   if (date === todayKey()) { const badge = document.createElement('span'); badge.className='badge'; badge.textContent='今日'; title.append(badge); }
   const actions = document.createElement('div'); actions.className='actions'; head.append(title, actions); section.append(head);
-  const draft = drafts.get(date);
-  if (!draft) {
-    actions.append(button('編集', () => { drafts.set(date, { ...entry(date) }); renderDay(date); document.querySelector(`#day-${date} textarea`).focus(); }));
-    const body = document.createElement('p'); body.className='body'; body.textContent=entry(date).body; section.append(body);
-  } else {
-    const input = document.createElement('textarea'); input.value=draft.body; input.setAttribute('aria-label', date + 'の日記'); input.rows=3;
-    const resize = () => { input.style.height='auto'; input.style.height=Math.max(108, input.scrollHeight)+'px'; };
-    input.oninput = () => { draft.body=input.value; resize(); };
-    const error = document.createElement('p'); error.className='error'; error.setAttribute('role','status');
-    const reload = button('最新の内容を読み込む', async () => {
-      if (!confirm('入力中の内容を破棄して、最新の内容を読み込みますか？')) return;
-      try { const rows=await api(`entries?start=${date}&end=${date}`); entries.set(date,rows[0] || {date,body:'',version:0}); drafts.set(date,{...entry(date)}); renderDay(date); } catch(e) { error.textContent=e.message; }
-    }); reload.hidden=true;
-    const save = button('保存', async () => {
-      input.readOnly=true; actions.querySelectorAll('button').forEach(b=>b.disabled=true);
-      try { entries.set(date, await api('entries/'+date, {method:'PUT',body:JSON.stringify({body:draft.body,version:draft.version})})); drafts.delete(date); renderDay(date); }
-      catch(e) { error.textContent=e.message; reload.hidden=!e.conflict; } finally { input.readOnly=false; actions.querySelectorAll('button').forEach(b=>b.disabled=false); }
-    });
-    actions.append(button('履歴',()=>openHistory(date)),button('キャンセル',()=>{ if (draft.body !== entry(date).body && !confirm('入力中の変更を破棄しますか？')) return; drafts.delete(date); renderDay(date); }),save);
-    section.append(input,error,reload); requestAnimationFrame(resize);
-  }
-  if(old) old.replaceWith(section); return section;
+  actions.append(button('編集', () => openEditor(date)));
+  const body = document.createElement('p');
+  body.className = 'body';
+  body.textContent = entry(date).body;
+  section.append(body);
+  if (old) old.replaceWith(section);
+  return section;
 }
+let editingDate = null, editorBusy = false;
+function resizeEditor() {
+  const input = $('#editor-body');
+  input.style.height = 'auto';
+  input.style.height = Math.max(180, input.scrollHeight) + 'px';
+}
+function setEditorBusy(busy) {
+  editorBusy = busy;
+  $('#editor-body').readOnly = busy;
+  $('#editor').querySelectorAll('button').forEach(b => b.disabled = busy);
+}
+function openEditor(date) {
+  if (editingDate && editingDate !== date) return;
+  editingDate = date;
+  if (!drafts.has(date)) drafts.set(date, { ...entry(date) });
+  $('#editor-title').textContent = date + ' の日記';
+  $('#editor-body').value = drafts.get(date).body;
+  $('#editor-error').textContent = '';
+  $('#editor-reload').hidden = true;
+  $('#editor').showModal();
+  resizeEditor();
+  $('#editor-body').focus({ preventScroll: true });
+}
+function closeEditor() {
+  const date = editingDate;
+  drafts.delete(date);
+  editingDate = null;
+  $('#editor').close();
+  document.querySelector(`#day-${date} button`)?.focus({ preventScroll: true });
+}
+function cancelEditor() {
+  if (editorBusy) return;
+  if (drafts.get(editingDate).body !== entry(editingDate).body &&
+      !confirm('入力中の変更を破棄しますか？')) return;
+  closeEditor();
+}
+$('#editor-body').oninput = () => {
+  drafts.get(editingDate).body = $('#editor-body').value;
+  resizeEditor();
+};
+$('#editor-cancel').onclick = cancelEditor;
+$('#editor').addEventListener('cancel', event => {
+  event.preventDefault();
+  cancelEditor();
+});
+$('#editor-history').onclick = () => openHistory(editingDate);
+$('#editor-save').onclick = async () => {
+  const date = editingDate, draft = drafts.get(date);
+  setEditorBusy(true);
+  try {
+    entries.set(date, await api('entries/' + date, {
+      method: 'PUT', body: JSON.stringify({ body: draft.body, version: draft.version })
+    }));
+    renderDay(date);
+    closeEditor();
+  } catch (e) {
+    $('#editor-error').textContent = e.message;
+    $('#editor-reload').hidden = !e.conflict;
+  } finally { setEditorBusy(false); }
+};
+$('#editor-reload').onclick = async () => {
+  if (!confirm('入力中の内容を破棄して、最新の内容を読み込みますか？')) return;
+  const date = editingDate;
+  setEditorBusy(true);
+  try {
+    const rows = await api(`entries?start=${date}&end=${date}`);
+    entries.set(date, rows[0] || { date, body: '', version: 0 });
+    drafts.set(date, { ...entry(date) });
+    renderDay(date);
+    $('#editor-body').value = entry(date).body;
+    $('#editor-error').textContent = '';
+    $('#editor-reload').hidden = true;
+    resizeEditor();
+  } catch (e) { $('#editor-error').textContent = e.message; }
+  finally { setEditorBusy(false); }
+};
+
 async function loadRange(start,end, prepend=false) {
   const rows=await api(`entries?start=${start}&end=${end}`); rows.forEach(row=>entries.set(row.date,row));
   const fragment=document.createDocumentFragment();
@@ -57,7 +119,7 @@ async function start() {
   if (!earliest) { await loadRange(shift(today,-30),shift(today,1)); earliest=shift(today,-30); }
   else await api(`entries?start=${today}&end=${today}`);
   localStorage.setItem('diary-token',token); $('#login').hidden=true; $('#notebook').hidden=false;
-  requestAnimationFrame(()=>document.getElementById('day-'+today)?.scrollIntoView());
+  requestAnimationFrame(() => { if (editingDate) openEditor(editingDate); else document.getElementById('day-'+today)?.scrollIntoView(); });
 }
 $('#login-form').onsubmit=async event=>{ event.preventDefault(); token=$('#token').value.trim(); const b=event.submitter;b.disabled=true;try { await start(); $('#token').value=''; } catch(e){$('#login-error').textContent=e.message;}finally{b.disabled=false;} };
 $('#older').onclick=async()=>{
@@ -81,14 +143,19 @@ async function moreHistory() {
       const time=document.createElement('time');time.textContent=new Date(row.saved_at).toLocaleString('ja-JP',{timeZone:'Asia/Tokyo'})+' · 版 '+row.version;
       const body=document.createElement('pre');body.textContent=row.body || '（空欄）';
       box.append(time,body,button('この版を復元',async()=>{
+        if (editorBusy) return;
         if(!confirm('この版を新しい履歴として保存します。編集中の内容は置き換わります。復元しますか？'))return;
-        try { const date=historyDay; entries.set(date,await api('entries/'+date,{method:'PUT',body:JSON.stringify({body:row.body,version:drafts.get(date).version})}));drafts.delete(date);renderDay(date);$('#history').close(); }
+        setEditorBusy(true);
+        $('#history').querySelectorAll('button').forEach(b => b.disabled = true);
+        try { const date=historyDay; entries.set(date,await api('entries/'+date,{method:'PUT',body:JSON.stringify({body:row.body,version:drafts.get(date).version})}));renderDay(date);$('#history').close();closeEditor(); }
         catch(e){$('#history-error').textContent=e.message;}
+        finally { setEditorBusy(false); $('#history').querySelectorAll('button').forEach(b => b.disabled = false); }
       }));$('#versions').append(box);
     }
     cursor=rows.at(-1)?.version;$('#more-history').hidden=rows.length<30;
   }catch(e){$('#history-error').textContent=e.message;}finally{$('#more-history').disabled=false;}
 }
+$('#history').addEventListener('cancel', event => { if (editorBusy) event.preventDefault(); });
 $('#more-history').onclick=moreHistory;$('#close-history').onclick=()=>$('#history').close();
 window.addEventListener('beforeunload',event=>{if([...drafts].some(([date,draft])=>draft.body!==entry(date).body)){event.preventDefault();event.returnValue='';}});
 if(token)start().catch(e=>login(e.message));

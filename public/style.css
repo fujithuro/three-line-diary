@@ -2,3 +2,17 @@
 
 /* Leave enough paper below tomorrow to align today beneath the sticky header. */
 footer{min-height:65dvh}
+
+/* Native modal dialogs make the notebook inert while writing. */
+body:has(dialog[open]) { overflow: hidden; }
+#editor { width: min(620px, calc(100% - 24px)); max-height: 90dvh; padding: 28px; overscroll-behavior: contain; }
+.editor-label { margin: 0 0 8px; color: var(--accent); font-size: 12px; letter-spacing: .12em; }
+#editor-title { margin: 0; }
+#editor-hint { font-size: 13px; color: var(--muted); margin: 12px 0 24px; }
+#editor-body { min-height: 180px; }
+#editor-body:focus-visible { outline: none; }
+.editor-actions { display: flex; align-items: center; gap: 4px; margin-top: 24px; position: sticky; bottom: -28px; background: var(--paper); padding: 12px 0; }
+.editor-actions span { flex: 1; }
+#editor-save { background: var(--accent); color: white; border-radius: 5px; padding-inline: 24px; }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media(max-width:400px) { #editor { padding: 20px; } .editor-actions { bottom: -20px; font-size: 14px; } }

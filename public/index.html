@@ -3,5 +3,15 @@
 <body>
 <section id="login" class="login"><h1>三行日記</h1><p>日々のことを、少しだけ。</p><form id="login-form"><label for="token">アクセストークン</label><input id="token" type="password" autocomplete="current-password" required><button>開く</button></form><p id="login-error" role="status"></p></section>
 <div id="notebook" hidden><header><h1>三行日記</h1><button id="today">今日へ</button></header><main><button id="older">過去をさらに読み込む</button><p id="notice" role="status"></p><div id="days"></div><footer>今日のことを、あなたの言葉で。</footer></main></div>
-<dialog id="history"><h2>日記の履歴</h2><div id="versions"></div><p id="history-error" role="status"></p><button id="more-history">さらに読み込む</button><button id="close-history">閉じる</button></dialog>
+<dialog id="editor" aria-labelledby="editor-title" aria-describedby="editor-hint">
+  <p class="editor-label">編集中</p>
+  <h2 id="editor-title"></h2>
+  <p id="editor-hint">今日のことを、あなたの言葉で。</p>
+  <label class="sr-only" for="editor-body">日記の本文</label>
+  <textarea id="editor-body" rows="5"></textarea>
+  <p id="editor-error" class="error" role="status"></p>
+  <button id="editor-reload" hidden>最新の内容を読み込む</button>
+  <div class="editor-actions"><button id="editor-history">履歴</button><span></span><button id="editor-cancel">キャンセル</button><button id="editor-save">保存</button></div>
+</dialog>
+<dialog id="history" aria-label="日記の履歴"><h2>日記の履歴</h2><div id="versions"></div><p id="history-error" role="status"></p><button id="more-history">さらに読み込む</button><button id="close-history">閉じる</button></dialog>
 <script type="module" src="/app.js"></script></body></html>
