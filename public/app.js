@@ -13,7 +13,7 @@ async function api(path, options = {}) {
   let response;
   try { response = await fetch('/api/' + path, { ...options, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, cache: 'no-store' }); }
   catch { throw new Error('通信できませんでした。接続を確認して再試行してください。'); }
-  if (response.status === 401) { login('トークンを確認して、もう一度入力してください。'); throw new Error('認証できませんでした。トークンを再入力してください。'); }
+  if (response.status === 401) { login('合言葉を確認して、もう一度入力してください。'); throw new Error('合言葉が違うようです。もう一度入力してください。'); }
   if (response.status === 409) { const error = new Error('他の画面で変更されています。入力内容を必要に応じてコピーし、最新の内容を読み込んで、もう一度編集してください。'); error.conflict = true; throw error; }
   if (!response.ok) throw new Error('保存先にアクセスできませんでした。もう一度お試しください。');
   return response.json();
