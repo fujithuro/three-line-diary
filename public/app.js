@@ -154,6 +154,27 @@ $('#older').onclick=async()=>{
 let lastY=window.scrollY;
 window.addEventListener('scroll',()=>{const y=window.scrollY;if(y<lastY && y<350 && !$('#notebook').hidden && !$('#notice').textContent)$('#older').click();lastY=y;},{passive:true});
 $('#today').onclick=()=>document.getElementById('day-'+todayKey())?.scrollIntoView({behavior:'smooth'});
+// Follow the system theme unless the toggle saved a different one; index.html applies it before first paint.
+const THEME_COLORS = { dark: '#2a2823', light: '#e4dccb' };
+const darkMedia = matchMedia('(prefers-color-scheme: dark)');
+const systemTheme = () => darkMedia.matches ? 'dark' : 'light';
+const savedTheme = () => { try { const theme = localStorage.getItem('diary-theme'); return theme === 'light' || theme === 'dark' ? theme : null; } catch { return null; } };
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  $('meta[name="theme-color"]').content = THEME_COLORS[theme];
+  const toDay = theme === 'dark';
+  $('#theme').textContent = toDay ? '☀︎' : '☾';
+  $('#theme').setAttribute('aria-label', toDay ? '昼の色にする' : '夜の色にする');
+  $('#theme').title = toDay ? '昼の色にする' : '夜の色にする';
+}
+applyTheme(savedTheme() || systemTheme());
+darkMedia.addEventListener('change', () => { if (!savedTheme()) applyTheme(systemTheme()); });
+// Choosing the system's own theme clears the override so the page follows the system again.
+$('#theme').onclick=()=>{
+  const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+  applyTheme(theme);
+  try { if (theme === systemTheme()) localStorage.removeItem('diary-theme'); else localStorage.setItem('diary-theme', theme); } catch {}
+};
 // Use an in-page confirmation so restore works in embedded browsers too.
 function confirmOperation(message) {
   const dialog = $('#operation-confirm');
