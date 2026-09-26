@@ -8,12 +8,12 @@ export function createDemoApi(today) {
     return date.toISOString().slice(0, 10);
   };
   const samples = [
-    [0, '帰り道、いつもと違う路地を歩いてみた。\n小さなパン屋を見つけて、明日の朝ごはんを買った。\nこういう寄り道もいい。'],
-    [-1, '読みかけの本を、少しだけ進めた。'],
-    [-3, '窓を開けると、気持ちのいい風が入ってきた。\n机の上を片づけてから、ゆっくりコーヒーを淹れた。\n午後は近所を散歩。\n公園のベンチで、何もせずに過ごす時間があった。\n忙しくない日も、書き残しておきたい。'],
-    [-4, '久しぶりに友人と話した。\n昔の話で、思っていたより長電話になった。\nまた近いうちに会いたい。'],
-    [-7, '夕飯のスープがうまくできた。\n少し多めに作ったので、明日の分もある。'],
-    [-10, '散歩の途中で、きれいな空を見た。\n写真にはうまく写らなかったけれど、覚えておこう。'],
+    [0, '今日はカレーを食べた。\n洗剤を買い忘れた。\n明日こそ買う。'],
+    [-1, '特に何もなかった。早めに寝た。'],
+    [-3, '朝、洗濯した。\n昼は冷凍うどん。\n午後はスーパーに行った。\n卵が安かったので買った。\n帰って冷蔵庫を見たら、まだあった。'],
+    [-4, '部屋を掃除した。\nなくしたと思っていたペンが出てきた。\n掃除機の充電が途中で切れた。'],
+    [-7, 'カレーを作りすぎた。\nたぶん明日もカレー。'],
+    [-10, '散歩に出たら雨が降ってきた。\nすぐ帰った。'],
   ];
   function save(date, body, version, savedAt = new Date().toISOString()) {
     const current = entries.get(date);
@@ -32,7 +32,7 @@ export function createDemoApi(today) {
   }
   for (const [offset, body] of samples) {
     const date = shift(offset);
-    if (offset === 0) save(date, '帰り道、いつもと違う路地を歩いてみた。', 0, `${date}T09:00:00Z`);
+    if (offset === 0) save(date, '今日はカレーを食べた。', 0, `${date}T09:00:00Z`);
     save(date, body, entries.get(date)?.version || 0, `${date}T10:00:00Z`);
   }
   return async (path, options = {}) => {
