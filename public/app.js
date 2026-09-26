@@ -1,6 +1,8 @@
 import { createDemoApi } from './demo.js';
 import { dateLabel } from './calendar.js';
 const $ = selector => document.querySelector(selector);
+const TAGLINE = '今日のことを、あなたの言葉で。';
+document.querySelectorAll('[data-tagline]').forEach(element => { element.textContent = TAGLINE; });
 const todayKey = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo', year:'numeric',month:'2-digit',day:'2-digit' }).format(new Date());
 const shift = (date, days) => { const d = new Date(date + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); };
 const isDemo = /^\/demo\/?$/.test(location.pathname);
