@@ -57,7 +57,8 @@ function openEditor(date) {
   if (editingDate && editingDate !== date) return;
   editingDate = date;
   if (!drafts.has(date)) drafts.set(date, { ...entry(date) });
-  $('#editor-title').textContent = date + ' の日記';
+  const label = dateLabel(date);
+  $('#editor-title').textContent = label.date + label.weekday + ' の日記';
   $('#editor-body').value = drafts.get(date).body;
   $('#editor-error').textContent = '';
   $('#editor-reload').hidden = true;
