@@ -104,7 +104,7 @@ $('#editor-save').onclick = async () => {
   } finally { setEditorBusy(false); }
 };
 $('#editor-reload').onclick = async () => {
-  if (!confirm('入力中の内容を破棄して、最新の内容を読み込みますか？')) return;
+  if (!await confirmOperation('入力中の内容を破棄して、最新の内容を読み込みますか？')) return;
   const date = editingDate;
   setEditorBusy(true);
   try {
@@ -144,6 +144,16 @@ $('#older').onclick=async()=>{
 let lastY=window.scrollY;
 window.addEventListener('scroll',()=>{const y=window.scrollY;if(y<lastY && y<350 && !$('#notebook').hidden && !$('#notice').textContent)$('#older').click();lastY=y;},{passive:true});
 $('#today').onclick=()=>document.getElementById('day-'+todayKey())?.scrollIntoView({behavior:'smooth'});
+// Use an in-page confirmation so restore works in embedded browsers too.
+function confirmOperation(message) {
+  const dialog = $('#operation-confirm');
+  $('#operation-message').textContent = message;
+  dialog.returnValue = '';
+  return new Promise(resolve => {
+    dialog.addEventListener('close', () => resolve(dialog.returnValue === 'yes'), { once: true });
+    dialog.showModal();
+  });
+}
 async function openHistory(date) { historyDay=date;cursor=null;$('#versions').replaceChildren();$('#history-error').textContent='';$('#history').showModal();await moreHistory(); }
 async function moreHistory() {
   $('#more-history').disabled=true;
@@ -156,7 +166,7 @@ async function moreHistory() {
       const body=document.createElement('pre');body.textContent=row.body || '（空欄）';
       box.append(time,body,button('この版を復元',async()=>{
         if (editorBusy) return;
-        if(!confirm('この版を新しい履歴として保存します。編集中の内容は置き換わります。復元しますか？'))return;
+        if(!await confirmOperation('この版を新しい履歴として保存します。編集中の内容は置き換わります。復元しますか？'))return;
         setEditorBusy(true);
         $('#history').querySelectorAll('button').forEach(b => b.disabled = true);
         try { const date=historyDay; entries.set(date,await api('entries/'+date,{method:'PUT',body:JSON.stringify({body:row.body,version:drafts.get(date).version})}));renderDay(date);$('#history').close();closeEditor(); }
