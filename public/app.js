@@ -20,11 +20,7 @@ async function api(path, options = {}) {
 }
 const entry = date => entries.get(date) || { date, body: '', version: 0 };
 function button(label, action) { const b = document.createElement('button'); b.textContent = label; b.onclick = action; return b; }
-function renderDay(date) {
-  const old = document.getElementById('day-' + date), section = document.createElement('section');
-  section.className = 'day'; section.id = 'day-' + date;
-  const head = document.createElement('div'); head.className = 'day-head';
-  const title = document.createElement('div'); title.className = 'date';
+function renderDate(title, date) {
   const label = dateLabel(date);
   title.textContent = label.date;
   const weekday = document.createElement('span');
@@ -32,6 +28,13 @@ function renderDay(date) {
   weekday.className = label.className;
   if (label.holiday) weekday.title = label.holiday;
   title.append(weekday);
+}
+function renderDay(date) {
+  const old = document.getElementById('day-' + date), section = document.createElement('section');
+  section.className = 'day'; section.id = 'day-' + date;
+  const head = document.createElement('div'); head.className = 'day-head';
+  const title = document.createElement('div'); title.className = 'date';
+  renderDate(title, date);
   if (date === todayKey()) { const badge = document.createElement('span'); badge.className='badge'; badge.textContent='今日'; title.append(badge); }
   const actions = document.createElement('div'); actions.className='actions'; head.append(title, actions); section.append(head);
   actions.append(button('編集', () => openEditor(date)));
@@ -57,8 +60,8 @@ function openEditor(date) {
   if (editingDate && editingDate !== date) return;
   editingDate = date;
   if (!drafts.has(date)) drafts.set(date, { ...entry(date) });
-  const label = dateLabel(date);
-  $('#editor-title').textContent = label.date + label.weekday + ' の日記';
+  renderDate($('#editor-title'), date);
+  $('#editor-title').append(' の日記');
   $('#editor-body').value = drafts.get(date).body;
   $('#editor-error').textContent = '';
   $('#editor-reload').hidden = true;
