@@ -2,6 +2,10 @@
 
 個人用のレスポンシブWebアプリ。Cloudflare Workersで画面とAPIを配信し、D1に日記とすべての保存履歴を記録します。
 
+**[デモを試す →](https://diary.fujithuro.com/demo)**
+
+ログイン不要で、サンプルの日記を使って編集・保存・履歴の復元を試せます。変更は再読み込みすると元に戻ります。
+
 ## ローカル起動
 
 ```sh
@@ -20,7 +24,7 @@ npm run dev
 
 編集・保存・履歴の復元も試せます。デモの日記と履歴はページ内のJavaScriptのメモリ（Map）だけに保持し、再読み込みすると初期状態に戻ります。タブ間や他の閲覧者とは共有しません。本番のトークンを読み取らず、日記APIやD1にはアクセスしません。
 
-ローカルでは `http://localhost:8787/demo`、デプロイ後は `https://diary.fujithuro.com/demo` で確認できます。DBの追加やマイグレーションは不要です。
+ローカルでは `http://localhost:8787/demo`、公開版は [diary.fujithuro.com/demo](https://diary.fujithuro.com/demo) で確認できます。DBの追加やマイグレーションは不要です。
 
 ## Cloudflareへの配置
 
