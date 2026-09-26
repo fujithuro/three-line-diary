@@ -154,27 +154,33 @@ $('#older').onclick=async()=>{
 let lastY=window.scrollY;
 window.addEventListener('scroll',()=>{const y=window.scrollY;if(y<lastY && y<350 && !$('#notebook').hidden && !$('#notice').textContent)$('#older').click();lastY=y;},{passive:true});
 $('#today').onclick=()=>document.getElementById('day-'+todayKey())?.scrollIntoView({behavior:'smooth'});
-// Follow the system theme unless the toggle saved a different one; index.html applies it before first paint.
+// Keep the explicit choice separate from the currently resolved system color.
 const THEME_COLORS = { dark: '#2a2a2a', light: '#f9f9f9' };
 const darkMedia = matchMedia('(prefers-color-scheme: dark)');
-const systemTheme = () => darkMedia.matches ? 'dark' : 'light';
-const savedTheme = () => { try { const theme = localStorage.getItem('diary-theme'); return theme === 'light' || theme === 'dark' ? theme : null; } catch { return null; } };
-function applyTheme(theme) {
+let themePreference = 'system';
+try { const saved = localStorage.getItem('diary-theme'); if (saved === 'light' || saved === 'dark') themePreference = saved; } catch {}
+function applyTheme() {
+  const theme = themePreference === 'system' ? (darkMedia.matches ? 'dark' : 'light') : themePreference;
   document.documentElement.dataset.theme = theme;
   $('meta[name="theme-color"]').content = THEME_COLORS[theme];
-  const toDay = theme === 'dark';
-  $('#theme').textContent = toDay ? '☀︎' : '☾';
-  $('#theme').setAttribute('aria-label', toDay ? '昼の色にする' : '夜の色にする');
-  $('#theme').title = toDay ? '昼の色にする' : '夜の色にする';
+  document.querySelectorAll('[name="theme"]').forEach(input => { input.checked = input.value === themePreference; });
 }
-applyTheme(savedTheme() || systemTheme());
-darkMedia.addEventListener('change', () => { if (!savedTheme()) applyTheme(systemTheme()); });
-// Choosing the system's own theme clears the override so the page follows the system again.
-$('#theme').onclick=()=>{
-  const theme = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
-  applyTheme(theme);
-  try { if (theme === systemTheme()) localStorage.removeItem('diary-theme'); else localStorage.setItem('diary-theme', theme); } catch {}
-};
+applyTheme();
+darkMedia.addEventListener('change', applyTheme);
+$('#theme-options').addEventListener('change', event => {
+  if (!['system', 'light', 'dark'].includes(event.target.value)) return;
+  themePreference = event.target.value;
+  applyTheme();
+  try {
+    if (themePreference === 'system') localStorage.removeItem('diary-theme');
+    else localStorage.setItem('diary-theme', themePreference);
+  } catch {}
+});
+$('#open-settings').onclick = () => $('#settings').showModal();
+// Account for wrapping and the device's safe area without covering diary text.
+new ResizeObserver(([entry]) => {
+  document.documentElement.style.setProperty('--footer-height', `${entry.target.getBoundingClientRect().height}px`);
+}).observe($('#app-footer'));
 // Use an in-page confirmation so restore works in embedded browsers too.
 function confirmOperation(message) {
   const dialog = $('#operation-confirm');
