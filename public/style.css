@@ -19,3 +19,5 @@ body:has(dialog[open]) { overflow: hidden; }
 
 .weekday-saturday { color: #3e6e9c; }
 .weekday-holiday { color: #ad4944; }
+
+#demo-note { color: var(--muted); font-size: 13px; line-height: 1.8; }

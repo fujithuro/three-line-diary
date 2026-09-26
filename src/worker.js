@@ -12,6 +12,15 @@ async function authorized(request, secret) {
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    if (url.pathname === '/demo' || url.pathname === '/demo/') {
+      const assetUrl = new URL('/', url);
+      const response = await env.ASSETS.fetch(new Request(assetUrl));
+      const html = (await response.text()).replace('<section id="login"', '<section hidden id="login"');
+      return new Response(request.method === 'HEAD' ? null : html, {
+        status: response.status,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' },
+      });
+    }
     if (!url.pathname.startsWith('/api/')) return env.ASSETS.fetch(request);
     if (!await authorized(request, env.DIARY_TOKEN)) return json({ error: 'unauthorized' }, 401);
     try {

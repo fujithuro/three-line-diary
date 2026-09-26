@@ -1,5 +1,5 @@
-const CACHE = 'diary-shell-v2';
-const SHELL = ['/', '/style.css', '/app.js', '/calendar.js', '/holidays.js', '/icon.svg', '/manifest.webmanifest'];
+const CACHE = 'diary-shell-v3';
+const SHELL = ['/', '/style.css', '/app.js', '/demo.js', '/calendar.js', '/holidays.js', '/icon.svg', '/manifest.webmanifest'];
 self.addEventListener('install', event => { event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL))); });
 self.addEventListener('activate', event => { event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key))))); });
 self.addEventListener('fetch', event => {

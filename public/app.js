@@ -1,11 +1,15 @@
+import { createDemoApi } from './demo.js';
 import { dateLabel } from './calendar.js';
 const $ = selector => document.querySelector(selector);
 const todayKey = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Asia/Tokyo', year:'numeric',month:'2-digit',day:'2-digit' }).format(new Date());
 const shift = (date, days) => { const d = new Date(date + 'T12:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0, 10); };
-let token = localStorage.getItem('diary-token') || '', earliest, loading = false, historyDay, cursor;
+const isDemo = /^\/demo\/?$/.test(location.pathname);
+const demoApi = isDemo ? createDemoApi(todayKey()) : null;
+let token = isDemo ? '' : localStorage.getItem('diary-token') || '', earliest, loading = false, historyDay, cursor;
 const entries = new Map(), drafts = new Map();
 function login(message = '') { if ($('#discard').open) $('#discard').close(); if ($('#editor').open) $('#editor').close(); if ($('#history').open) $('#history').close(); $('#login').hidden = false; $('#notebook').hidden = true; $('#login-error').textContent = message; }
 async function api(path, options = {}) {
+  if (demoApi) return demoApi(path, options);
   let response;
   try { response = await fetch('/api/' + path, { ...options, headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' }, cache: 'no-store' }); }
   catch { throw new Error('通信できませんでした。接続を確認して再試行してください。'); }
@@ -130,7 +134,7 @@ async function start() {
   const today=todayKey();
   if (!earliest) { await loadRange(shift(today,-30),shift(today,1)); earliest=shift(today,-30); }
   else await api(`entries?start=${today}&end=${today}`);
-  localStorage.setItem('diary-token',token); $('#login').hidden=true; $('#notebook').hidden=false;
+  if (!isDemo) localStorage.setItem('diary-token',token); $('#login').hidden=true; $('#notebook').hidden=false;
   requestAnimationFrame(() => { if (editingDate) openEditor(editingDate); else document.getElementById('day-'+today)?.scrollIntoView(); });
 }
 $('#login-form').onsubmit=async event=>{ event.preventDefault(); token=$('#token').value.trim(); const b=event.submitter;b.disabled=true;try { await start(); $('#token').value=''; } catch(e){$('#login-error').textContent=e.message;}finally{b.disabled=false;} };
@@ -180,5 +184,12 @@ async function moreHistory() {
 $('#history').addEventListener('cancel', event => { if (editorBusy) event.preventDefault(); });
 $('#more-history').onclick=moreHistory;$('#close-history').onclick=()=>$('#history').close();
 window.addEventListener('beforeunload',event=>{if([...drafts].some(([date,draft])=>draft.body!==entry(date).body)){event.preventDefault();event.returnValue='';}});
-if(token)start().catch(e=>login(e.message));
+if (isDemo) {
+  document.title = '三行日記 · デモ';
+  $('#login').hidden = true;
+  $('#demo-note').hidden = false;
+  $('#editor-hint').textContent = 'デモの編集内容は、再読み込みすると元に戻ります。';
+  $('#demo-badge').hidden = false;
+}
+if(token || isDemo)start().catch(e=>login(e.message));
 if('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js').catch(()=>{});
