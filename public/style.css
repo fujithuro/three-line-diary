@@ -25,3 +25,5 @@ body:has(dialog[open]) { overflow: hidden; }
 .login-demo { display: inline-flex; align-items: center; min-height: 44px; color: var(--accent); text-underline-offset: 3px; }
 .header-actions { display: flex; align-items: center; }
 #theme { min-width: 44px; font-size: 18px; line-height: 1; }
+
+.build-info { display: block; margin-top: 12px; color: var(--muted); font-size: 11px; letter-spacing: .03em; }

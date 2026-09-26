@@ -26,6 +26,14 @@ npm run dev
 
 ローカルでは `http://localhost:8787/demo`、公開版は [diary.fujithuro.com/demo](https://diary.fujithuro.com/demo) で確認できます。DBの追加やマイグレーションは不要です。
 
+## ビルド表示
+
+ログイン画面と一覧下部に `build abc1234` のようにコミットハッシュを表示します。`npm run dev` では `local abc1234`、生成時に未コミットの変更があれば `+変更あり` を添えます。表示はHTMLを生成した時点の情報で、開いたままの画面は再読み込みするまで更新されません。個々のJS・CSSのキャッシュ状態までは保証しません。
+
+Wranglerのカスタムビルドが `npm run build` を実行し、`public/index.html` のプレースホルダーを置換したファイルを `dist/public` に生成します。元の `public` は書き換えず、生成物はGitに含めません。Gitのあるチェックアウトで実行してください。
+
+Cloudflare Workers Buildsのデプロイコマンドは `npx wrangler deploy` のままで対応します。ローカルでも `npm run deploy` で同じ生成処理が動きます。開発中は `public`・`scripts`・`src` の変更で再生成されます。コミットだけを行った後に表示を更新する場合は開発サーバーを再起動してください。
+
 ## Cloudflareへの配置
 
 ```sh
