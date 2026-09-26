@@ -155,7 +155,7 @@ let lastY=window.scrollY;
 window.addEventListener('scroll',()=>{const y=window.scrollY;if(y<lastY && y<350 && !$('#notebook').hidden && !$('#notice').textContent)$('#older').click();lastY=y;},{passive:true});
 $('#today').onclick=()=>document.getElementById('day-'+todayKey())?.scrollIntoView({behavior:'smooth'});
 // Follow the system theme unless the toggle saved a different one; index.html applies it before first paint.
-const THEME_COLORS = { dark: '#2a2823', light: '#e4dccb' };
+const THEME_COLORS = { dark: '#2a2823', light: '#f0ece2' };
 const darkMedia = matchMedia('(prefers-color-scheme: dark)');
 const systemTheme = () => darkMedia.matches ? 'dark' : 'light';
 const savedTheme = () => { try { const theme = localStorage.getItem('diary-theme'); return theme === 'light' || theme === 'dark' ? theme : null; } catch { return null; } };
