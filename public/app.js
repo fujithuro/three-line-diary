@@ -9,7 +9,7 @@ const isDemo = /^\/demo\/?$/.test(location.pathname);
 const demoApi = isDemo ? createDemoApi(todayKey()) : null;
 let token = isDemo ? '' : localStorage.getItem('diary-token') || '', earliest, loading = false, historyDay, cursor;
 const entries = new Map(), drafts = new Map();
-function login(message = '') { if ($('#discard').open) $('#discard').close(); if ($('#editor').open) $('#editor').close(); if ($('#history').open) $('#history').close(); $('#login').hidden = false; $('#notebook').hidden = true; $('#login-error').textContent = message; }
+function login(message = '') { if ($('#discard').open) $('#discard').close(); if ($('#editor').open) $('#editor').close(); if ($('#history').open) $('#history').close(); delete document.documentElement.dataset.session; $('#login').hidden = false; $('#notebook').hidden = true; $('#login-error').textContent = message; }
 async function api(path, options = {}) {
   if (demoApi) return demoApi(path, options);
   let response;
